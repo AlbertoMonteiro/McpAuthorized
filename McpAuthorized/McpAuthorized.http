@@ -1,6 +1,6 @@
 # For more info on HTTP files go to https://aka.ms/vs/httpfile
 
-@HostAddress = https://localhost:5092
+@HostAddress = https://mcpauthorized.dev.localhost:5092
 @KeyCloakAddress = http://localhost:8080
 
 # @name login

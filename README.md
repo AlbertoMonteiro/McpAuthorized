@@ -8,57 +8,148 @@ The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) is an open 
 
 - Host an MCP server as an ASP.NET Core web application using HTTP (Streamable HTTP) transport.
 - Protect MCP endpoints with JWT Bearer authentication issued by **Keycloak**.
-- Orchestrate all services (MCP server + Keycloak) with **.NET Aspire**.
+- Orchestrate all services (MCP server + Keycloak + MCP Inspector) with **.NET Aspire**.
 - Import a pre-configured Keycloak **Realm** to make testing fast and repeatable.
-- Exercise the full authentication and tool-call flow using a ready-made **`.http` file**.
+- Exercise the full authentication and tool-call flow using a ready-made **`.http` file** or the built-in **MCP Inspector**.
 
 ## Architecture
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│  .NET Aspire AppHost                                           │
-│                                                                │
-│  ┌─────────────────────┐      ┌──────────────────────────┐    │
-│  │  Keycloak (Docker)  │◄────►│  McpAuthorized (ASP.NET) │    │
-│  │  realm: api         │      │  /  → MCP endpoint       │    │
-│  │  client: mcp-user   │      │  JWT Bearer validation   │    │
-│  └─────────────────────┘      └──────────────────────────┘    │
-└────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│  .NET Aspire AppHost                                                   │
+│                                                                        │
+│  ┌─────────────────────┐      ┌──────────────────────────┐            │
+│  │  Keycloak (Docker)  │◄────►│  McpAuthorized (ASP.NET) │            │
+│  │  realm: api         │      │  /  → MCP endpoint       │            │
+│  │  client: mcp-user   │      │  JWT Bearer validation   │            │
+│  └─────────────────────┘      └────────────┬─────────────┘            │
+│                                            │                           │
+│                               ┌────────────▼─────────────┐            │
+│                               │     MCP Inspector        │            │
+│                               │  Browser-based MCP tester│            │
+│                               └──────────────────────────┘            │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 1. **Keycloak** is started as a persistent Docker container with the `api` realm imported automatically from `McpAuthorized.AppHost/Realms/api-realm.json`.
 2. **McpAuthorized** (the MCP server) reads the Keycloak URL from its environment and validates every incoming request against a JWT token issued by the `api` realm.
 3. The MCP server exposes a single tool (`get_random_number`) through the `POST /` endpoint.
+4. **MCP Inspector** is a browser-based tool that lets you interactively explore and test the MCP server, as an alternative to the `.http` file.
 
 ## Prerequisites
 
 | Requirement | Version |
 |---|---|
 | [.NET SDK](https://dot.net/download) | 10.0+ |
-| [.NET Aspire workload](https://learn.microsoft.com/dotnet/aspire/fundamentals/setup-tooling) | 9.x / 13.x preview |
+| [Aspire CLI](https://learn.microsoft.com/dotnet/aspire/fundamentals/aspire-sdk-dotnet-cli) | latest |
 | [Docker](https://www.docker.com/products/docker-desktop/) | any recent version |
 
-Install the Aspire workload if you haven't already:
+Install the Aspire CLI if you haven't already:
 
 ```bash
-dotnet workload install aspire
+dotnet tool install -g aspire
 ```
 
 ## Running the Project
 
 ```bash
 cd McpAuthorized.AppHost
-dotnet run
+aspire run
 ```
 
 Aspire will:
 1. Pull and start a **Keycloak** container on port `8080`, automatically importing the `api` realm.
-2. Start the **McpAuthorized** web server (by default at `https://localhost:5092`).
-3. Wait for Keycloak to be healthy before starting the MCP server.
+2. Start the **McpAuthorized** web server at `https://mcpauthorized.dev.localhost:5092`.
+3. Start the **MCP Inspector** and connect it to the MCP server.
+4. Wait for Keycloak to be healthy before starting the MCP server.
 
-Open the Aspire Dashboard (URL printed in the console) to monitor both services.
+Open the Aspire Dashboard (URL printed in the console) to monitor all services.
 
-## Keycloak Configuration
+> **Note on `.dev.localhost` hostnames:** On Linux and macOS, subdomains of `localhost` (like `mcpauthorized.dev.localhost`) resolve to `127.0.0.1` automatically. On Windows, you may need to add entries to your `hosts` file:
+> ```
+> 127.0.0.1  mcpauthorized.dev.localhost
+> ```
+
+## Keycloak as an MCP Authorization Server
+
+This PoC follows the [Keycloak MCP Authorization Server](https://www.keycloak.org/securing-apps/mcp-authz-server) pattern, which aligns with the MCP specification's OAuth 2.0 security model.
+
+### How MCP Authorization Works
+
+The MCP specification defines a security model based on **OAuth 2.0 Protected Resources** (RFC 9728). Here is the full flow:
+
+```
+┌──────────┐     1. Discover AS      ┌─────────────┐
+│  MCP     │ ───────────────────────►│  MCP Server │
+│  Client  │◄─── authorization_      │  (this PoC) │
+│          │     servers: [Keycloak] └──────┬──────┘
+│          │                                │ 2. Validate JWT
+│          │     3. Request token    ┌──────▼──────┐
+│          │ ───────────────────────►│  Keycloak   │
+│          │◄─── access_token        │  (OAuth AS) │
+│          │                         └─────────────┘
+│          │     4. Call MCP tool
+│          │ ───── Bearer <token> ──►  MCP Server
+└──────────┘                         responds with tool result
+```
+
+#### Step 1 – Protected Resource Metadata Discovery
+
+MCP clients first call the MCP server's protected resource metadata endpoint:
+
+```
+GET /.well-known/oauth-protected-resource
+```
+
+The server responds with:
+
+```json
+{
+  "resource": "account",
+  "authorization_servers": ["http://localhost:8080/realms/api"],
+  "scopes_supported": ["mcp:tools"],
+  "resource_documentation": "https://docs.example.com/api/weather"
+}
+```
+
+This tells MCP clients which Keycloak realm issues valid tokens for this server.
+
+#### Step 2 – Obtain an Access Token from Keycloak
+
+MCP clients authenticate against Keycloak using OAuth 2.0. This PoC uses the `client_credentials` grant (machine-to-machine):
+
+```http
+POST http://localhost:8080/realms/api/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id=mcp-user&client_secret=7lrl6I10qLM5LaUUoLSI2KfBJoIsBWRg&grant_type=client_credentials&scope=mcp:tools
+```
+
+For interactive use cases (user-delegated access), Keycloak also supports `authorization_code` with **PKCE** (Proof Key for Code Exchange), which is the recommended flow for public clients like MCP desktop agents.
+
+#### Step 3 – Call the MCP Server
+
+The access token is sent as a `Bearer` token on every MCP request:
+
+```http
+POST https://mcpauthorized.dev.localhost:5092/
+Authorization: Bearer <access_token>
+MCP-Protocol-Version: 2025-11-25
+Content-Type: application/json
+```
+
+#### Step 4 – Token Validation
+
+The MCP server validates each JWT against Keycloak's OIDC discovery document:
+
+| Claim | Expected value |
+|---|---|
+| `iss` (issuer) | `http://<keycloak-host>/realms/api` |
+| `aud` (audience) | `account` |
+| `scope` | contains `mcp:tools` |
+| Signature | verified against Keycloak's JWKS |
+
+### Keycloak Configuration
 
 > ⚠️ **Security notice:** `api-realm.json` contains hardcoded client credentials intended for **local development only**. Never deploy this realm file to a shared or production environment. Regenerate all secrets before using this configuration outside your local machine.
 
@@ -80,14 +171,20 @@ http://<keycloak-host>/realms/api
 
 and validates that the `aud` (audience) claim contains `account`.
 
-## Authentication Flow
+### Dynamic Client Registration (DCR)
 
-The MCP server uses the **MCP OAuth 2.0 protected resource** pattern:
+In production scenarios, Keycloak supports **Dynamic Client Registration** (RFC 7591), which allows MCP clients to register themselves automatically without manual configuration. A Keycloak admin creates an initial registration token, and MCP clients use it to register and receive their own `client_id` and `client_secret`.
 
-1. The client requests a token from Keycloak using the `client_credentials` grant.
-2. The token is sent as a `Bearer` token in the `Authorization` header on every request to the MCP server.
-3. The server validates the token (issuer, audience, lifetime, signature) via standard `JwtBearer` middleware.
-4. If validation succeeds, the request is forwarded to the MCP pipeline.
+## Testing with MCP Inspector
+
+The MCP Inspector is a browser-based interactive tool included in the Aspire dashboard. When you run the project, the Inspector is automatically connected to the MCP server.
+
+From the Aspire dashboard, click the **MCP Inspector** link to:
+- Browse the available MCP tools
+- Call tools interactively
+- Inspect request and response payloads
+
+> MCP Inspector handles the authentication flow automatically using the configuration provided by the MCP server's Protected Resource Metadata.
 
 ## Testing with the HTTP File
 
@@ -107,7 +204,7 @@ The response body contains `access_token`. The `.http` file stores it as `{{logi
 ### Step 2 – Start an MCP Session
 
 ```http
-POST https://localhost:5092/
+POST https://mcpauthorized.dev.localhost:5092/
 Authorization: Bearer {{login.response.body.$.access_token}}
 MCP-Protocol-Version: 2025-11-25
 Content-Type: application/json
@@ -125,7 +222,7 @@ The response header `Mcp-Session-Id` contains the session identifier used in sub
 ### Step 3 – Call the MCP Tool
 
 ```http
-POST https://localhost:5092/
+POST https://mcpauthorized.dev.localhost:5092/
 Authorization: Bearer {{login.response.body.$.access_token}}
 MCP-Session-Id: {{NewSession.response.headers.Mcp-Session-Id}}
 Content-Type: application/json
@@ -152,7 +249,7 @@ McpAuthorized.sln
 │   └── McpAuthorized.http           # Test HTTP file
 │
 ├── McpAuthorized.AppHost/           # .NET Aspire orchestration
-│   ├── AppHost.cs                   # Defines Keycloak + MCP server
+│   ├── AppHost.cs                   # Defines Keycloak + MCP server + MCP Inspector
 │   └── Realms/
 │       └── api-realm.json           # Keycloak realm import
 │
@@ -167,10 +264,14 @@ McpAuthorized.sln
 | [`ModelContextProtocol.AspNetCore`](https://www.nuget.org/packages/ModelContextProtocol.AspNetCore) | MCP server SDK for ASP.NET Core (HTTP transport) |
 | [`Aspire.Keycloak.Authentication`](https://www.nuget.org/packages/Aspire.Keycloak.Authentication) | Aspire integration for Keycloak JWT authentication |
 | [`Aspire.Hosting.Keycloak`](https://www.nuget.org/packages/Aspire.Hosting.Keycloak) | Aspire hosting extension to run Keycloak in Docker |
+| [`CommunityToolkit.Aspire.Hosting.McpInspector`](https://www.nuget.org/packages/CommunityToolkit.Aspire.Hosting.McpInspector) | Aspire hosting extension for the MCP Inspector browser tool |
 
 ## Further Reading
 
 - [Model Context Protocol – Official Documentation](https://modelcontextprotocol.io/)
 - [MCP C# SDK](https://modelcontextprotocol.github.io/csharp-sdk)
+- [Keycloak MCP Authorization Server](https://www.keycloak.org/securing-apps/mcp-authz-server)
 - [.NET Aspire Documentation](https://learn.microsoft.com/dotnet/aspire/)
 - [Keycloak Documentation](https://www.keycloak.org/documentation)
+- [OAuth 2.0 Protected Resource Metadata (RFC 9728)](https://datatracker.ietf.org/doc/html/rfc9728)
+- [OAuth 2.0 Dynamic Client Registration (RFC 7591)](https://datatracker.ietf.org/doc/html/rfc7591)

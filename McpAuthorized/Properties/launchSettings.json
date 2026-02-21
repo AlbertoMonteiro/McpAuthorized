@@ -5,7 +5,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
-      "applicationUrl": "http://localhost:6102",
+      "applicationUrl": "http://mcpauthorized.dev.localhost:6102",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -14,7 +14,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
-      "applicationUrl": "https://localhost:5092;http://localhost:6102",
+      "applicationUrl": "https://mcpauthorized.dev.localhost:5092;http://mcpauthorized.dev.localhost:6102",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
