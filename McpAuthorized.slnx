@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="McpAuthorized.AppHost/McpAuthorized.AppHost.csproj" />
+  <Project Path="McpAuthorized.ServiceDefaults/McpAuthorized.ServiceDefaults.csproj" />
+  <Project Path="McpAuthorized/McpAuthorized.csproj" />
+</Solution>

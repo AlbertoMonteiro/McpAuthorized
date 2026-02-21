@@ -1,0 +1,25 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.1.1">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>7c41cdf7-46d5-40a6-9a86-6210addaf594</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.Keycloak" Version="13.1.1-preview.1.26105.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\McpAuthorized\McpAuthorized.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Realms\api-realm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

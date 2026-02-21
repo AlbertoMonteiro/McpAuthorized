@@ -1,0 +1,57 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+
+@HostAddress = https://localhost:5092
+@KeyCloakAddress = http://localhost:8080
+
+# @name login
+POST {{KeyCloakAddress}}/realms/api/protocol/openid-connect/token
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded
+
+client_id=mcp-user&client_secret=7lrl6I10qLM5LaUUoLSI2KfBJoIsBWRg&grant_type=client_credentials&scope=mcp:tools
+
+###
+# @name NewSession
+
+POST {{HostAddress}}/
+Accept: application/json, text/event-stream
+Content-Type: application/json
+MCP-Protocol-Version: 2025-11-25
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+        "protocolVersion": "2025-11-25",
+        "capabilities": {
+            "tools": {},
+            "resources": {},
+            "logging": {}
+        },
+        "clientInfo": {
+            "name": "curl-client",
+            "version": "1.0"
+        }
+    }
+}
+
+###
+# @name GetRandomNumber
+
+POST {{HostAddress}}/
+Accept: application/json, text/event-stream
+Content-Type: application/json
+MCP-Protocol-Version: 2025-11-25
+Authorization: Bearer {{login.response.body.$.access_token}}
+MCP-Session-Id: {{NewSession.response.headers.Mcp-Session-Id}}
+
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+        "name": "get_random_number"
+    }
+}
