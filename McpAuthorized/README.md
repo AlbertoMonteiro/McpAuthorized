@@ -1,25 +1,25 @@
-# MCP Server
+# McpAuthorized – MCP Server
 
-This README was created using the C# MCP server project template.
-It demonstrates how you can easily create an MCP server using C# and run it as an ASP.NET Core web application.
+This is the ASP.NET Core MCP server component of the **McpAuthorized** PoC.  
+For a full project overview, architecture, and testing instructions see the [root README](../README.md).
 
-The MCP server is built as a self-contained application and does not require the .NET runtime to be installed on the target machine.
-However, since it is self-contained, it must be built for each target platform separately.
-By default, the template is configured to build for:
-* `win-x64`
-* `win-arm64`
-* `osx-arm64`
-* `linux-x64`
-* `linux-arm64`
-* `linux-musl-x64`
+## What it does
 
-If you require more platforms to be supported, update the list of runtime identifiers in the project's `<RuntimeIdentifiers />` element.
+- Exposes an MCP endpoint at `POST /` using **Streamable HTTP transport**.
+- Validates incoming requests with **JWT Bearer tokens** issued by a Keycloak `api` realm.
+- Registers the `get_random_number` tool (see `Tools/RandomNumberTools.cs`).
 
-Please note that this template is currently in an early preview stage. If you have feedback, please take a [brief survey](http://aka.ms/dotnet-mcp-template-survey).
+## Key files
 
-## Developing locally
+| File | Purpose |
+|---|---|
+| `Program.cs` | Authentication setup (JWT Bearer + MCP OAuth metadata) and MCP registration |
+| `Tools/RandomNumberTools.cs` | Example MCP tool that returns a random integer |
+| `McpAuthorized.http` | HTTP test file – token → session → tool call flow |
 
-To test this MCP server from source code (locally), you can configure your IDE to connect to the server using localhost.
+## Connecting from an IDE
+
+Because the server requires a valid Bearer token, direct IDE connections (without a token) will receive a `401 Unauthorized` challenge. Use the `.http` file or configure your MCP client to supply a token.
 
 ```json
 {
@@ -32,27 +32,19 @@ To test this MCP server from source code (locally), you can configure your IDE t
 }
 ```
 
-Refer to the VS Code or Visual Studio documentation for more information on configuring and using MCP servers:
+Refer to the VS Code or Visual Studio documentation for more information:
 
 - [Use MCP servers in VS Code (Preview)](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
 - [Use MCP servers in Visual Studio (Preview)](https://learn.microsoft.com/visualstudio/ide/mcp-servers)
 
-## Testing the MCP Server
-
-Once configured, you can ask Copilot Chat for a random number, for example, `Give me 3 random numbers`. It should prompt you to use the `get_random_number` tool on the `McpAuthorized` MCP server and show you the results.
-
 ## Known issues
 
-1. When using VS Code, connecting to `https://localhost:5092` fails.
-  * This is related to using a self-signed developer certificate, even when the certificate is trusted by the system.
-  * Connecting with `http://localhost:6102` succeeds.
-  * See [Cannot connect to MCP server via SSE using trusted developer certificate (microsoft/vscode#248170)](https://github.com/microsoft/vscode/issues/248170) for more information.
+1. When using VS Code, connecting to `https://localhost:5092` may fail due to a self-signed developer certificate.
+   - Connecting with `http://localhost:6102` succeeds.
+   - See [microsoft/vscode#248170](https://github.com/microsoft/vscode/issues/248170) for more information.
 
 ## More information
 
-ASP.NET Core MCP servers use the [ModelContextProtocol.AspNetCore](https://www.nuget.org/packages/ModelContextProtocol.AspNetCore) package from the MCP C# SDK. For more information about MCP:
-
-- [Official Documentation](https://modelcontextprotocol.io/)
-- [Protocol Specification](https://spec.modelcontextprotocol.io/)
-- [GitHub Organization](https://github.com/modelcontextprotocol)
+- [ModelContextProtocol.AspNetCore NuGet package](https://www.nuget.org/packages/ModelContextProtocol.AspNetCore)
 - [MCP C# SDK](https://modelcontextprotocol.github.io/csharp-sdk)
+- [Official MCP Documentation](https://modelcontextprotocol.io/)
