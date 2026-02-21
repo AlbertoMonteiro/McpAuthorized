@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.Keycloak" Version="13.1.1-preview.1.26105.8" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.McpInspector" Version="9.6.0" />
   </ItemGroup>
 
   <ItemGroup>

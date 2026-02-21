@@ -7,8 +7,12 @@ var keycloak = builder.AddKeycloak("keycloak", 8080)
      .WithOtlpExporter()
      .WithLifetime(ContainerLifetime.Persistent);
 
-builder.AddProject<McpAuthorized>("mcpauthorized")
+var mcp = builder.AddProject<McpAuthorized>("mcpauthorized")
                         .WithReference(keycloak)
-                        .WaitFor(keycloak); ;
+                        .WaitFor(keycloak);
+
+builder.AddMcpInspector("mcpinspector")
+    .WithReference(mcp)
+    .WaitFor(mcp);
 
 builder.Build().Run();
