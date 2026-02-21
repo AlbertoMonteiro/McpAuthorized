@@ -6,7 +6,10 @@ using System.Security.Claims;
 var builder = WebApplication.CreateBuilder(args);
 
 var serverUrl = "account";
-var inMemoryOAuthServerUrl = $"{builder.Configuration.GetValue<string>("KEYCLOAK_HTTP")}/realms/api";
+UriBuilder uriBuilder = new(builder.Configuration.GetValue<string>("KEYCLOAK_HTTP"));
+uriBuilder.Host = $"keycloak-mcpauth.dev.{uriBuilder.Host}";
+uriBuilder.Path = "realms/api";
+var inMemoryOAuthServerUrl = uriBuilder.Uri.ToString();
 
 builder.Services.AddHttpContextAccessor();
 

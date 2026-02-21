@@ -1,7 +1,7 @@
 # For more info on HTTP files go to https://aka.ms/vs/httpfile
 
-@HostAddress = https://localhost:5092
-@KeyCloakAddress = http://localhost:8080
+@HostAddress = https://mcpauthorized-mcpauth.dev.localhost:5092
+@KeyCloakAddress = http://keycloak-mcpauth.dev.localhost:8080
 
 # @name login
 POST {{KeyCloakAddress}}/realms/api/protocol/openid-connect/token
