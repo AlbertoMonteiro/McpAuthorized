@@ -12,8 +12,9 @@ var mcp = builder.AddProject<McpAuthorized>("mcpauthorized")
                         .WithReference(keycloak)
                         .WaitFor(keycloak);
 
-builder.AddMcpInspector("mcpinspector")
+builder.AddMcpInspector("mcpinspector", new McpInspectorOptions() { InspectorVersion = "latest" })
     .WithEnvironment("ALLOWED_ORIGINS", "http://mcpinspector-mcpauth.dev.localhost:6274,http://localhost:6274")
-    .WithMcpServer(mcp);
+    .WithMcpServer(mcp)
+    .WaitFor(mcp);
 
 builder.Build().Run();

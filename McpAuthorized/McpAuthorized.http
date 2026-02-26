@@ -4,7 +4,7 @@
 @KeyCloakAddress = http://keycloak-mcpauth.dev.localhost:8080
 
 # @name login
-POST {{KeyCloakAddress}}/realms/api/protocol/openid-connect/token
+POST {{KeyCloakAddress}}/realms/local/protocol/openid-connect/token
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded
 

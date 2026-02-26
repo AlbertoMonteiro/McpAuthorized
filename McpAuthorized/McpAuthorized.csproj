@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>2c0a739b-79b4-45ce-b79e-265b0aa0b66b</UserSecretsId>
-
 
     <!-- Set up the MCP server to be a self-contained application that does not rely on a shared framework -->
     <SelfContained>true</SelfContained>
@@ -17,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Keycloak.Authentication" Version="13.1.2-preview.1.26125.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.0.0" />
   </ItemGroup>
 

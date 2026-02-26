@@ -5,7 +5,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://mcpauth.dev.localhost:17189;http://mcpauth.dev.localhost:15030",
+      "applicationUrl": "https://localhost:17189;http://localhost:15030",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "DOTNET_ENVIRONMENT": "Development",
@@ -18,13 +18,26 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "http://mcpauth.dev.localhost:15030",
+      "applicationUrl": "http://localhost:15030",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "DOTNET_ENVIRONMENT": "Development",
         "ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL": "http://localhost:19097",
         "ASPIRE_DASHBOARD_MCP_ENDPOINT_URL": "http://localhost:18218",
         "ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL": "http://localhost:20005"
+      }
+    },
+    "dev.localhost": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "https://mcpauth.dev.localhost:17189;http://mcpauth.dev.localhost:15030",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development",
+        "ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL": "https://localhost:21249",
+        "ASPIRE_DASHBOARD_MCP_ENDPOINT_URL": "https://localhost:23154",
+        "ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL": "https://localhost:22182"
       }
     }
   }

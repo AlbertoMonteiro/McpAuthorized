@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Realms\api-realm.json">
+    <None Update="Realms\local-realm.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
