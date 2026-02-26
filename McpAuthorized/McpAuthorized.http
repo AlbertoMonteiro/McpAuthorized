@@ -13,7 +13,7 @@ client_id=mcp-user&client_secret=7lrl6I10qLM5LaUUoLSI2KfBJoIsBWRg&grant_type=cli
 ###
 # @name NewSession
 
-POST {{HostAddress}}/
+POST {{HostAddress}}/mcp
 Accept: application/json, text/event-stream
 Content-Type: application/json
 MCP-Protocol-Version: 2025-11-25
@@ -35,12 +35,29 @@ Authorization: Bearer {{login.response.body.$.access_token}}
             "version": "1.0"
         }
     }
+}}
+
+###
+# @name ListTools
+
+POST {{HostAddress}}/mcp
+Accept: application/json, text/event-stream
+Content-Type: application/json
+MCP-Protocol-Version: 2025-11-25
+Authorization: Bearer {{login.response.body.$.access_token}}
+MCP-Session-Id: {{NewSession.response.headers.Mcp-Session-Id}}
+
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/list"
 }
+
 
 ###
 # @name GetRandomNumber
 
-POST {{HostAddress}}/
+POST {{HostAddress}}/mcp
 Accept: application/json, text/event-stream
 Content-Type: application/json
 MCP-Protocol-Version: 2025-11-25
@@ -53,5 +70,26 @@ MCP-Session-Id: {{NewSession.response.headers.Mcp-Session-Id}}
     "method": "tools/call",
     "params": {
         "name": "get_random_number"
+    }
+}
+
+
+
+###
+# @name WhoAmI
+
+POST {{HostAddress}}/mcp
+Accept: application/json, text/event-stream
+Content-Type: application/json
+MCP-Protocol-Version: 2025-11-25
+Authorization: Bearer {{login.response.body.$.access_token}}
+MCP-Session-Id: {{NewSession.response.headers.Mcp-Session-Id}}
+
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+        "name": "who_am_i"
     }
 }

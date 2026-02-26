@@ -3,6 +3,7 @@ using Projects;
 var builder = DistributedApplication.CreateBuilder(args);
 
 var keycloak = builder.AddKeycloak("keycloak", 8080)
+     .WithImageTag("26.5.4")
      .WithRealmImport("./Realms")
      .WithOtlpExporter()
      .WithLifetime(ContainerLifetime.Persistent);
@@ -12,7 +13,7 @@ var mcp = builder.AddProject<McpAuthorized>("mcpauthorized")
                         .WaitFor(keycloak);
 
 builder.AddMcpInspector("mcpinspector")
-    .WithReference(mcp)
-    .WaitFor(mcp);
+    .WithEnvironment("ALLOWED_ORIGINS", "http://mcpinspector-mcpauth.dev.localhost:6274,http://localhost:6274")
+    .WithMcpServer(mcp);
 
 builder.Build().Run();

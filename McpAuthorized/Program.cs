@@ -13,6 +13,10 @@ var inMemoryOAuthServerUrl = uriBuilder.Uri.ToString();
 
 builder.Services.AddHttpContextAccessor();
 
+builder.AddServiceDefaults();
+
+builder.Services.AddProblemDetails();
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultChallengeScheme = McpAuthenticationDefaults.AuthenticationScheme;
@@ -66,13 +70,14 @@ builder.Services.AddAuthentication(options =>
         options.ResourceMetadata = new()
         {
             Resource = serverUrl,
-            ResourceDocumentation = "https://docs.example.com/api/weather",
             AuthorizationServers = { inMemoryOAuthServerUrl },
             ScopesSupported = ["mcp:tools"],
         };
     });
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddCors(x => x.AddDefaultPolicy(c => c.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().WithExposedHeaders("Mcp-Session-Id", "Mcp-Protocol-Version")));
 
 // Add the MCP services: the transport to use (http) and the tools to register.
 builder.Services
@@ -82,10 +87,12 @@ builder.Services
 
 var app = builder.Build();
 
+app.UseCors();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapMcp()
+app.MapMcp("/mcp")
     .RequireAuthorization();
 
 app.Run();

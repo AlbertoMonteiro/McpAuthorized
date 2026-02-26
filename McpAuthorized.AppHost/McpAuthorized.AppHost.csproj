@@ -1,4 +1,4 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.1.1">
+<Project Sdk="Aspire.AppHost.Sdk/13.1.2">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Keycloak" Version="13.1.1-preview.1.26105.8" />
-    <PackageReference Include="CommunityToolkit.Aspire.Hosting.McpInspector" Version="9.6.0" />
+    <PackageReference Include="Aspire.Hosting.Keycloak" Version="13.1.2-preview.1.26125.13" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.McpInspector" Version="13.1.1" />
   </ItemGroup>
 
   <ItemGroup>
